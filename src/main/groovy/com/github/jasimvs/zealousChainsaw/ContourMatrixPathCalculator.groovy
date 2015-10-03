@@ -39,7 +39,7 @@ class ContourMatrixPathCalculator {
                 selectedStartingPoint = it.value
 			} else {
 				def validNodes = findLowerPointsNearby(it.value)
-				if (validNodes) {
+                if (validNodes) {
 					def nextNode = findNextPoint(validNodes)
 //					println nextNode
 					updateNode(it.value, nextNode)
@@ -53,7 +53,8 @@ class ContourMatrixPathCalculator {
 
     private void updateSelectedStartingPoint(ContourMatrixNode node) {
         if (selectedStartingPoint.noOfStopsToLeafNodeOnLongestPath < node.noOfStopsToLeafNodeOnLongestPath ||
-                (selectedStartingPoint.noOfStopsToLeafNodeOnLongestPath == node.noOfStopsToLeafNodeOnLongestPath && selectedStartingPoint.dropToLeaf < node.dropToLeaf)) {
+                (selectedStartingPoint.noOfStopsToLeafNodeOnLongestPath == node.noOfStopsToLeafNodeOnLongestPath
+                        && selectedStartingPoint.dropToLeaf < node.dropToLeaf)) {
             selectedStartingPoint = node
         }
     }
@@ -68,7 +69,11 @@ class ContourMatrixPathCalculator {
 	private def findNextPoint(validNodes) {
 		validNodes.max { a, b ->
 			if (nodeMap.get(a.value).noOfStopsToLeafNodeOnLongestPath == nodeMap.get(b.value).noOfStopsToLeafNodeOnLongestPath) {
-				nodeMap.get(a.value).dropToLeaf <=> nodeMap.get(b.value).dropToLeaf
+				if (nodeMap.get(a.value).dropToLeaf == nodeMap.get(b.value).dropToLeaf) {
+                    nodeMap.get(b.value).height <=> nodeMap.get(a.value).height
+                } else {
+                    nodeMap.get(a.value).dropToLeaf <=> nodeMap.get(b.value).dropToLeaf
+                }
 			} else {
 				nodeMap.get(a.value).noOfStopsToLeafNodeOnLongestPath <=> nodeMap.get(b.value).noOfStopsToLeafNodeOnLongestPath
 			}
