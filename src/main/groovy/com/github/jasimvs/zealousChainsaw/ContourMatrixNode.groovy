@@ -1,7 +1,5 @@
 package com.github.jasimvs.zealousChainsaw
 
-import java.awt.Point
-
 class ContourMatrixNode {
 
 	Point location

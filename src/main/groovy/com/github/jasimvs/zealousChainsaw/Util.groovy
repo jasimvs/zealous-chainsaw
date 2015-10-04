@@ -1,47 +1,39 @@
 package com.github.jasimvs.zealousChainsaw
 
-import java.awt.Point
-
 class Util {
 
-    public ArrayList<ArrayList<Integer>> getArrayListFromMultiLineString(String input) {
+    ContourMatrixPathCalculator getContourMatrixPathCalcFromString(String content) {
+        SortedMap<Integer, Set<ContourMatrixNode>> heightToNodesSortedMap = new TreeMap<>()
+        ContourMatrixNode[][] nodeMatrix
+
         Integer breadth
         Integer height
-        ArrayList<ArrayList<Integer>> array
 
-        input.eachLine { line, x ->
-            if (x == 0) {
+        content.eachLine { line, index ->
+            if (index == 0) {
                 def something = line.tokenize(" ")
                 breadth = something.get(0).toInteger()
                 height = something.get(1).toInteger()
-                array = new ArrayList<ArrayList<Integer>>()
+                nodeMatrix = new ContourMatrixNode[breadth][height]
             } else {
+                def x = index - 1
                 ArrayList<Integer> values = line.tokenize(" ")*.toInteger()
                 validateArraySize(x, breadth, values.size(), height)
-                array.add(values)
+
+                values.eachWithIndex { item, y ->
+                    Point point = new Point(x, y)
+                    nodeMatrix[x][y] = new ContourMatrixNode(height: item, location: point)
+                    if (heightToNodesSortedMap.containsKey(item)) {
+                        heightToNodesSortedMap.get(item).add(nodeMatrix[x][y])
+                    } else {
+                        def newSet = new HashSet<ContourMatrixNode>(1)
+                        newSet.add(nodeMatrix[x][y])
+                        heightToNodesSortedMap.put(item, newSet)
+                    }
+                }
             }
         }
-        return array
-    }
-
-    public ArrayList<ArrayList<Integer>> getArrayListFromUrl(def input) {
-        Integer breadth
-        Integer height
-        ArrayList<ArrayList<Integer>> array
-
-        input.eachLine(0, { line, x ->
-            if (x == 0) {
-                def something = line.tokenize(" ")
-                breadth = something.get(0).toInteger()
-                height = something.get(1).toInteger()
-                array = new ArrayList<ArrayList<Integer>>()
-            } else {
-                ArrayList<Integer> values = line.tokenize(" ")*.toInteger()
-                validateArraySize(x, breadth, values.size(), height)
-                array.add(values)
-            }
-        })
-        return array
+        return new ContourMatrixPathCalculator(nodeMatrix: nodeMatrix, heightToNodesSortedMap: heightToNodesSortedMap)
     }
 
     private void validateArraySize(x, breadth, y, height) {
