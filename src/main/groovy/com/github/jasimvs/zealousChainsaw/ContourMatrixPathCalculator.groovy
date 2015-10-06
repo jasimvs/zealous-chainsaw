@@ -139,7 +139,7 @@ class ContourMatrixPathCalculator {
                     break
                 default:
                     text = text + "Error: $next.direction is not valid.\n"
-                    return
+                    return text
 			}
             text = text + " -> $next.height [${(int)next.location.x},${(int)next.location.y}] $next.direction\n"
 		}
