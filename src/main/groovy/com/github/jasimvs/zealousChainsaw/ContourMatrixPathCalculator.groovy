@@ -1,29 +1,44 @@
 package com.github.jasimvs.zealousChainsaw
 
-class Point {
-    int x, y
-    Point(int x, int y) {
-        this.x = x
-        this.y = y
-    }
-}
-
 class ContourMatrixPathCalculator {
-
-    public static final String END = "End"
-    public static final String NORTH = "North"
-    public static final String EAST = "East"
-    public static final String WEST = "West"
-    public static final String SOUTH = "South"
 
     ContourMatrixNode[][] nodeMatrix
     SortedMap<Integer, Set<ContourMatrixNode>> heightToNodesSortedMap
 
     private ContourMatrixNode selectedStartingPoint
 
-    private Util util = new Util();
+    public static ContourMatrixPathCalculator getContourMatrixPathCalcFromString(String content) {
+        SortedMap<Integer, Set<ContourMatrixNode>> heightToNodesSortedMap = new TreeMap<>()
+        ContourMatrixNode[][] nodeMatrix
 
-	ContourMatrixNode calculateLongestSteepestDescendingPath() {
+        content.eachLine { line, index ->
+            if (index == 0) {
+                def something = line.tokenize(" ")
+                Integer breadth = something.get(0).toInteger()
+                Integer height = something.get(1).toInteger()
+                nodeMatrix = new ContourMatrixNode[breadth][height]
+            } else {
+                def x = index - 1
+                ArrayList<Integer> values = line.tokenize(" ")*.toInteger()
+                Util.validateArraySize(x, nodeMatrix.length, values.size(), nodeMatrix[0].length)
+
+                values.eachWithIndex { item, y ->
+                    Point point = new Point(x, y)
+                    nodeMatrix[x][y] = new ContourMatrixNode(height: item, location: point)
+                    if (heightToNodesSortedMap.containsKey(item)) {
+                        heightToNodesSortedMap.get(item).add(nodeMatrix[x][y])
+                    } else {
+                        def newSet = new HashSet<ContourMatrixNode>(1)
+                        newSet.add(nodeMatrix[x][y])
+                        heightToNodesSortedMap.put(item, newSet)
+                    }
+                }
+            }
+        }
+        return new ContourMatrixPathCalculator(nodeMatrix: nodeMatrix, heightToNodesSortedMap: heightToNodesSortedMap)
+    }
+
+    ContourMatrixNode calculateLongestSteepestDescendingPath() {
         calculatePaths()
         return selectedStartingPoint
 	}
@@ -82,24 +97,16 @@ class ContourMatrixPathCalculator {
 		}
 	}
 	
-	private def findLowerNodesNearby(ContourMatrixNode currentPoint) {
-		def validNodes = [:]
-        Map<String, Point> nodesAround = [ (NORTH) : util.getNorthPoint(currentPoint.location),
-                                           (EAST) : util.getEastPoint(currentPoint.location),
-                                           (WEST) : util.getWestPoint(currentPoint.location),
-                                           (SOUTH) : util.getSouthPoint(currentPoint.location)]
-		nodesAround.each { node ->
-			if (isProcessed(node.value)) {
-				if (nodeMatrix[node.value.x][node.value.y].height < currentPoint.height) {
-					validNodes.put(node.key, node.value)
-				}
-			}
-		}
-		return validNodes
+	private Map<Direction, Point> findLowerNodesNearby(ContourMatrixNode currentPoint) {
+        Util.getPointsAround(currentPoint).findAll { node ->
+            if (isProcessed(node.value) && nodeMatrix[node.value.x][node.value.y].height < currentPoint.height) {
+                node
+            }
+        }
 	}
 
     private updateLeafNode(ContourMatrixNode obj) {
-		obj.direction = END
+		obj.direction = Direction.End
 		obj.noOfStopsToLeafNodeOnLongestPath = 1
 		obj.dropToLeaf = 0
 	}
@@ -119,22 +126,22 @@ class ContourMatrixPathCalculator {
         String text = "Number of stops: $node.noOfStopsToLeafNodeOnLongestPath Drop: $node.dropToLeaf\n"
         text = text + "Starting point: $node.height [${(int)node.location.x},${(int)node.location.y}] $node.direction\n"
         ContourMatrixNode next = node
-		while (next.direction != END) {
+		while (next.direction != Direction.End) {
 			switch (next.direction) {
-				case NORTH:
-                    Point northPoint = util.getNorthPoint(next.location)
+				case Direction.North:
+                    Point northPoint = Util.getNorthPoint(next.location)
                     next = nodeMatrix[northPoint.x][northPoint.y]
 					break
-				case EAST:
-                    Point eastPoint = util.getEastPoint(next.location)
+				case Direction.East:
+                    Point eastPoint = Util.getEastPoint(next.location)
                     next = nodeMatrix[eastPoint.x][eastPoint.y]
                     break
-				case WEST:
-                    Point westPoint = util.getWestPoint(next.location)
+				case Direction.West:
+                    Point westPoint = Util.getWestPoint(next.location)
                     next = nodeMatrix[westPoint.x][westPoint.y]
                     break
-				case SOUTH:
-                    Point southPoint = util.getSouthPoint(next.location)
+				case Direction.South:
+                    Point southPoint = Util.getSouthPoint(next.location)
                     next = nodeMatrix[southPoint.x][southPoint.y]
                     break
                 default:
@@ -147,7 +154,8 @@ class ContourMatrixPathCalculator {
 	}
 
     public String getLongestSteepestDescendingPathAsString() {
-        ContourMatrixNode node = calculateLongestSteepestDescendingPath()
-        getPathAsString(node)
+        calculateLongestSteepestDescendingPath().with {
+            getPathAsString(it)
+        }
     }
 }

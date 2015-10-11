@@ -15,7 +15,7 @@ class ContourMatrixPathCalculatorTest extends Specification {
 
     def "CalculateLongestSteepestDescendingPath"() {
         when:
-        ContourMatrixNode output = new Util().getContourMatrixPathCalcFromString(content).calculateLongestSteepestDescendingPath();
+        ContourMatrixNode output = ContourMatrixPathCalculator.getContourMatrixPathCalcFromString(content).calculateLongestSteepestDescendingPath();
 
         then:
         //verify output
@@ -23,14 +23,14 @@ class ContourMatrixPathCalculatorTest extends Specification {
     }
 
     String errorExp = """Number of stops: 5 Drop: 9
-Starting point: 9 [1,2] XYZ
-Error: XYZ is not valid."""
+Starting point: 9 [1,2] null
+Error: null is not valid."""
 
     def "printPathError"() {
         setup:
-        def calc = new Util().getContourMatrixPathCalcFromString(content)
+        def calc = ContourMatrixPathCalculator.getContourMatrixPathCalcFromString(content)
         def actualNode = calc.calculateLongestSteepestDescendingPath()
-        actualNode.direction = "XYZ"
+        actualNode.direction = null
 
         when:
         String output = calc.getPathAsString(actualNode)
@@ -50,7 +50,7 @@ Starting point: 9 [1,2] West
     def "PrintLongestSteepestDescendingPath"() {
 
         when:
-        def output =new Util().getContourMatrixPathCalcFromString(content).getLongestSteepestDescendingPathAsString()
+        def output = ContourMatrixPathCalculator.getContourMatrixPathCalcFromString(content).getLongestSteepestDescendingPathAsString()
 
         then:
         //prtTestStr.trim().normalize() == output

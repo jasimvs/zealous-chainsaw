@@ -14,9 +14,10 @@ def content = "http://s3-ap-southeast-1.amazonaws.com/geeks.redmart.com/coding-p
 //def content = new File("D:\\code\\jsm\\zealous-chainsaw\\map.txt").getText()
 
 println "Processing data..."
-ContourMatrixPathCalculator calc = util.getContourMatrixPathCalcFromString(content)
-println "Calculating paths..."
-print calc.getLongestSteepestDescendingPathAsString()
+ContourMatrixPathCalculator.getContourMatrixPathCalcFromString(content).with {
+    println "Calculating paths..."
+    print getLongestSteepestDescendingPathAsString()
+}
 
 
 
